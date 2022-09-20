@@ -23,7 +23,6 @@ const App = () => {
         try {
           setLoading(true);
           const response = await API(imageTitle, page);
-          console.log(response);
           setImage(prevState => [...prevState, ...response.hits]);
         } catch (error) {
           setError(error);
