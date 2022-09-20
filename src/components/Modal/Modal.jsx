@@ -1,39 +1,32 @@
-import React, { Component } from 'react';
+import { useEffect } from 'react';
 import css from './Modal.module.css';
 import PropTypes from 'prop-types';
 
-export class Modal extends Component {
-  componentDidMount() {
-    window.addEventListener('keydown', this.handleKeydown);
-  }
+const Modal = ({ toggleModal, dataModal: { src, title } }) => {
+  useEffect(() => {
+    const handleKeydown = ({ code }) => {
+      if (code === 'Escape') toggleModal();
+    };
 
-  componentWillUnmount() {
-    window.removeEventListener('keydown', this.handleKeydown);
-  }
+    window.addEventListener('keydown', handleKeydown);
+    return () => {
+      window.removeEventListener('keydown', handleKeydown);
+    };
+  }, [toggleModal]);
 
-  handleKeydown = ({ code }) => {
-    if (code === 'Escape') this.props.toggleModal();
+  const handleOverlayClick = ({ target, currentTarget }) => {
+    if (currentTarget === target) toggleModal();
   };
 
-  handleOverlayClick = ({ target, currentTarget }) => {
-    if (currentTarget === target) this.props.toggleModal();
-  };
-
-  render() {
-    const {
-      dataModal: { src, title },
-    } = this.props;
-
-    return (
-      <div className={css.Overlay} onClick={this.handleOverlayClick}>
-        <div className={css.Modal}>
-          <img src={src} alt={title} />
-        </div>
-        ;
+  return (
+    <div className={css.Overlay} onClick={handleOverlayClick}>
+      <div className={css.Modal}>
+        <img src={src} alt={title} />
       </div>
-    );
-  }
-}
+      ;
+    </div>
+  );
+};
 
 export default Modal;
 

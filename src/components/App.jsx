@@ -1,82 +1,67 @@
-import React, { Component } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { ToastContainer } from 'react-toastify';
 import Searchbar from './Searchbar/Searchbar';
 import ImageGallery from './ImageGallery/ImageGallery';
 import Button from './Button/Button';
 import Loader from './Loader/Loader';
 import css from './App.module.css';
-
 import Modal from './Modal/Modal';
 import { API } from '../API/API.js';
 
-export class App extends Component {
-  state = {
-    imageTitle: '',
-    image: [],
-    loading: false,
-    page: 1,
-    per_page: 12,
-    showModal: false,
-    dataModal: null,
-    error: null,
-  };
+const App = () => {
+  const [imageTitle, setImageTitle] = useState('');
+  const [image, setImage] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(1);
+  const [showModal, setShowModal] = useState(false);
+  const [dataModal, setDataModal] = useState(null);
+  const [error, setError] = useState(null);
 
-  async componentDidUpdate(_, prevState) {
-    const { page, imageTitle, per_page } = this.state;
-    if (prevState.page !== page || prevState.imageTitle !== imageTitle) {
-      try {
-        this.setState({ loading: true });
-        const response = await API(imageTitle, page, per_page);
-        this.setState(prevState => ({
-          image: [...prevState.image, ...response.hits],
-        }));
-      } catch (error) {
-        this.setState({ error });
-      } finally {
-        this.setState({ loading: false });
+  useEffect(() => {
+    async function getIm() {
+      if (imageTitle) {
+        try {
+          setLoading(true);
+          const response = await API(imageTitle, page);
+          console.log(response);
+          setImage(prevState => [...prevState, ...response.hits]);
+        } catch (error) {
+          setError(error);
+        } finally {
+          setLoading(false);
+        }
       }
     }
-  }
+    getIm();
+  }, [page, imageTitle]);
 
-  handleSearchbarSubmit = imageTitle => {
-    this.setState({
-      page: 1,
-      per_page: 12,
-      imageTitle,
-    });
+  const handleSearchbarSubmit = imageTitle => {
+    setPage(1);
+    setImageTitle(imageTitle);
   };
 
-  loadMore = () => {
-    this.setState(prevState => ({
-      page: prevState.page + 1,
-    }));
+  const loadMore = () => {
+    setPage(prevState => prevState + 1);
   };
 
-  toggleModal = data => {
-    this.setState(({ showModal }) => ({
-      showModal: !showModal,
-      dataModal: data,
-    }));
-  };
+  const toggleModal = useCallback(data => {
+    setShowModal(showModal => !showModal);
+    setDataModal(data);
+  }, []);
 
-  render() {
-    const { loading, image, showModal, dataModal, error } = this.state;
-    return (
-      <>
-        <ToastContainer autoClose={3000} />
-        <div className={css.App}>
-          <Searchbar onSubmit={this.handleSearchbarSubmit} />
-          {error && <p>Whoops, something went wrong: {error.message}</p>}
-          <ImageGallery image={image} toggleModal={this.toggleModal} />
-          {loading && <Loader />}
-          {image.length ? <Button onSubmit={this.loadMore} /> : ''}
-          {showModal && (
-            <Modal dataModal={dataModal} toggleModal={this.toggleModal} />
-          )}
-        </div>
-      </>
-    );
-  }
-}
+  return (
+    <>
+      <ToastContainer autoClose={3000} />
+      <div className={css.App}>
+        <Searchbar onSubmit={handleSearchbarSubmit} />
+        {error && <p>Whoops, something went wrong: {error.message}</p>}
+        <ImageGallery image={image} toggleModal={toggleModal} />
+        {loading && <Loader />}
+        {image.length ? <Button onSubmit={loadMore} /> : ''}
+        {showModal && <Modal dataModal={dataModal} toggleModal={toggleModal} />}
+      </div>
+    </>
+  );
+};
 
 export default App;
