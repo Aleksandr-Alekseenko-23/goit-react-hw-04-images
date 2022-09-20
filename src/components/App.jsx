@@ -37,6 +37,7 @@ const App = () => {
   const handleSearchbarSubmit = imageTitle => {
     setPage(1);
     setImageTitle(imageTitle);
+    setImage([]);
   };
 
   const loadMore = () => {
